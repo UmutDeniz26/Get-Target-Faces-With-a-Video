@@ -1,84 +1,111 @@
 from simple_facerec import SimpleFacerec
 import face_recognition
-import pyautogui as pg
 import numpy as np
-import keyboard
-import asyncio
 import time
 import math
 import cv2
 import os
 
 def logLastImgNumber(number):
-    f=open('log.txt','w')
+    f=open('log\log.txt','w')
     f.write(str(number))
     f.close()
 
 def getLastImgNumber():
-    f=open('log.txt','r')
+    f=open('log\log.txt','r')
     data=f.readline()
     f.close()
     return data
 
-#face_recognition.face_encodings(cv2.cvtColor(np.array(screenshotTemp),cv2.COLOR_RGB2BGR))
 def encodeTesters():
     testerArr=[]
     for names in os.listdir('tester'):
         tester = cv2.cvtColor(cv2.imread("tester/{}".format(names)), cv2.COLOR_BGR2RGB)
-        #cv2.imwrite("Tester{}".format(names),tester)
+        cv2.imwrite("log\Testers\Tester{}".format(names),tester)
         tester_encoding = face_recognition.face_encodings(tester)[0]
         testerArr.append(tester_encoding)
     return testerArr
 
-def simpleTest(encodedScreenshot,testerArr):    
+def simpleTest(ımgTemp,testerArr):    
+    encodedTemp = face_recognition.face_encodings(cv2.cvtColor(np.array(ımgTemp),cv2.COLOR_RGB2BGR))
     accuracyCnt=0
-    errorCnt=0
-    print("Test Begins :)")
-    for index, tester in enumerate(testerArr):
+    
+    for tester in testerArr:
         try:
-            if face_recognition.compare_faces([encodedScreenshot], tester):
-                print("Test {} passed !".format(index))
+            if face_recognition.compare_faces([encodedTemp], tester):
                 accuracyCnt+=1
         except:
-            errorCnt+=1
+            return 0
+            pass
+    
+    if accuracyCnt>=(len(testerArr)/2):
+        return 1
+    else:
+        return 0
 
-    print("AccuracyCnt: {}".format(accuracyCnt),"    ErrorCnt: {}".format(errorCnt))
-    return len(testerArr)-accuracyCnt # if all test accurate, returns 0
-
+def offsetCrop(locations,offsetPx):
+    newLocations=[]     
+    for index,loc in enumerate(locations): #locations should be x1 y1 x2 y2
+        loc = loc-offsetPx if index <= 1 else loc+offsetPx
+        loc = 0 if loc<0 else loc
+        if index%2==0: #x
+            loc= int(videdoWidth) if loc>videdoWidth else loc
+        else: #y
+            loc= int(videoHeight) if loc>videoHeight else loc
+        newLocations.append(loc)
+    return newLocations
 
 encodedTesters = encodeTesters()
-
 sfr = SimpleFacerec()
 sfr.load_encoding_images("images/")
 
-start = time.time()
 print("Started to capture ..!")
 
-while True:  # making a loop
-    try:  # used try so that if user pressed other than the given key error will not be shown
-        
-        if time.time()-start > 0.2:
-            start=time.time()
-            face_locations, face_names =sfr.detect_known_faces(cv2.cvtColor(np.array(pg.screenshot()),cv2.COLOR_RGB2BGR)) # screenshot in known_faces()
-            for face_loc, face_names in zip(face_locations, face_names):
-                if face_names!="Unknown":
-                    y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
-                    offset=math.floor((x2-x1)/2)
-                    screenshotTemp = pg.screenshot(region=(x1-offset,y1-offset,x2-x1+2*offset,y2-y1+2*offset))
-                    
-                    fileNum=getLastImgNumber()
-                    encodedTemp = face_recognition.face_encodings(cv2.cvtColor(np.array(screenshotTemp),cv2.COLOR_RGB2BGR))
-                    
-                    if simpleTest(encodedTemp,encodedTesters) == 0:
-                        screenshotTemp.save('output/target{}.jpg'.format(fileNum))
-                        print("  [x2-x1]: ",x2-x1,"  [y2-y1]: ",y2-y1,"   Name:",face_names," FileNum:",fileNum," base:{",x1,y1,x2,y2,"}")
-                    else:
-                        screenshotTemp.save('noise/noise{}.jpg'.format(fileNum))             
-                    logLastImgNumber(int(fileNum)+1)
+cap = cv2.VideoCapture('input.mp4')
 
+videdoWidth  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)    # float `width`
+videoHeight = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  
+fps = cap.get(cv2.CAP_PROP_FPS)      # OpenCV v2.x used "CV_CAP_PROP_FPS"
+frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+duration = frame_count/fps
+
+frameCounter=0
+previous=0
+startTime=time.time()
+
+while(cap.isOpened()):
+  # Capture frame-by-frame
+  ret, frame = cap.read()
+  if ret == True:
+    cv2.imshow('frame',frame)
+    frameCounter+=1
+    progressPercentage = math.floor((frameCounter/frame_count)*100)
+    if ((frameCounter/frame_count)*100)-progressPercentage < 0.05:
+        os.system("cls")
+        print("[{}{}]  progressPercentage: %{}".format(math.floor(progressPercentage/2)*"-",math.ceil((100-progressPercentage)/2)*" ",progressPercentage))
+    timepassed=time.time()-startTime
+    if timepassed > 3:
+        startTime=time.time()
+    
+        face_locations, face_names =sfr.detect_known_faces(frame) # screenshot in known_faces()
+        for face_loc, face_names in zip(face_locations, face_names):
+            if face_names!="Unknown":
+                y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
+
+                [x1,y1,x2,y2]=offsetCrop([x1,y1,x2,y2],math.floor((x2-x1)/3))
+                croppedImage= frame[y1:y2,x1:x2]
+
+                fileNum=getLastImgNumber()
+
+                if simpleTest(ımgTemp=croppedImage,testerArr=encodedTesters):
+                    cv2.imwrite('output/target{}.jpg'.format(fileNum),croppedImage)
+                else:
+                    cv2.imwrite('noise/noise{}.jpg'.format(fileNum),croppedImage)
+                logLastImgNumber(int(fileNum)+1)
         
-        if keyboard.is_pressed('q'):  # if key 'q' is pressed 
-            print('You Pressed q Key!')
-            break  # finishing the loop
-    except:
-        break  # if user pressed a key other than the given key the loop will break
+    # Press Q on keyboard to  exit
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+  else: 
+    print("Completed")
+    break

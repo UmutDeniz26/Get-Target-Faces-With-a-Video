@@ -27,7 +27,7 @@ def encodeTesters():
     return testerArr
 
 def simpleTest(ımgTemp,testerArr):    
-    encodedTemp = face_recognition.face_encodings(cv2.cvtColor(np.array(ımgTemp),cv2.COLOR_RGB2BGR))
+    encodedTemp = face_recognition.face_encodings(ımgTemp)
     accuracyCnt=0
     
     for tester in testerArr:
@@ -77,7 +77,7 @@ while(cap.isOpened()):
   # Capture frame-by-frame
   ret, frame = cap.read()
   if ret == True:
-    cv2.imshow('frame',frame)
+    #cv2.imshow('frame',frame)
     frameCounter+=1
     progressPercentage = math.floor((frameCounter/frame_count)*100)
     if ((frameCounter/frame_count)*100)-progressPercentage < 0.05:

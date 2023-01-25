@@ -20,9 +20,7 @@ def getLastImgNumber():
     f.close()
     return data
 
-
 #face_recognition.face_encodings(cv2.cvtColor(np.array(screenshotTemp),cv2.COLOR_RGB2BGR))
-
 def encodeTesters():
     testerArr=[]
     for names in os.listdir('tester'):
@@ -77,9 +75,7 @@ while True:  # making a loop
                     else:
                         screenshotTemp.save('noise/noise{}.jpg'.format(fileNum))             
                     logLastImgNumber(int(fileNum)+1)
-                    
 
-        
         
         if keyboard.is_pressed('q'):  # if key 'q' is pressed 
             print('You Pressed q Key!')

@@ -12,9 +12,11 @@ globalTımer=time.time()
 #default
 wantedFrameNum=500
 accuracyLimit=97
+distributionChoice=1
 
 #wantedFrameNum=int(input("Type the number of frame that you want examine: "))
 #accuracyLimit=int(input("Type the number of accuracy limit that you want (max->100, min->0) : "))
+#distributionChoice=int(input("Type the distribution choice (1 -> Same weights, else -> Weighted distribution due to video lengths) : "))
 accuracyLimit=0 if accuracyLimit<0 else 100 if accuracyLimit>100 else accuracyLimit  
 
 #print(face_recognition.compare_faces([encodedTemp], tester))
@@ -111,15 +113,20 @@ logWrite("","errorLog.txt")
 
 
 
+
 weightedDistributionOfWantedLengths=[]
 
 videoLengths=getVideoLengths()
 for lengths in videoLengths:
     weightedDistributionOfWantedLengths.append(int(lengths*wantedFrameNum/sum(videoLengths)))
-    
-print(weightedDistributionOfWantedLengths)
 
 
+if distributionChoice == 1:
+    wantedFrameNum/=len(os.listdir('inputVideos')) if wantedFrameNum > len(os.listdir('inputVideos')) else wantedFrameNum
+    wantedFrameNum=math.ceil(wantedFrameNum)
+    weightedDistributionOfWantedLengths=[wantedFrameNum]*os.listdir('inputVideos')
+else:
+    pass
 
 for index,videoName in enumerate(os.listdir('inputVideos')):
     videoCnt+=1
@@ -143,10 +150,10 @@ for index,videoName in enumerate(os.listdir('inputVideos')):
             passedTıme=math.floor(time.time()-localTimer)
             #Eta = math.floor(passedTıme*(100-progressPercentage)/progressPercentage) if progressPercentage!=0 else 1
             os.system("cls")
-            print("{} - {}  ProgressPercentage: %{}   Video Length: {}h:{}m:{}s    {} frames will be examined for this video".format(
+            print("{} - {}  ProgressPercentage: %{}   Video Length: {}h:{}m:{}s  frameScaler: {}    {} frames will be examined for this video".format(
                 videoCnt,videoName,round(progressPercentage,2),formatCustomDigit(int(videoDuration/(60*60)),2)
                 ,formatCustomDigit(int((videoDuration/(60))%60),2),
-                formatCustomDigit(int(videoDuration%60),2),
+                formatCustomDigit(int(videoDuration%60),2),round(cap.get(cv2.CAP_PROP_FRAME_COUNT),2)/wantedFrameNum,
                 wantedFrameNum))
 
             face_locations, face_names =sfr.detect_known_faces(frame) # screenshot in known_faces()

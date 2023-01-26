@@ -54,7 +54,7 @@ def offsetCrop(locations,offsetPx):
 
 encodedTesters = encodeTesters()
 
-frameCounter,savedImg,noiseImg,videoCnt,examinedFramescnt=0,0,0,0,0,0
+frameCounter,savedImg,noiseImg,videoCnt,examinedFramescnt=0,0,0,0,0
 globalTımer=time.time()
 singleTımer=time.time()
 

@@ -11,7 +11,7 @@ globalTımer=time.time()
 
 #default
 wantedFrameNum=500
-accuracyLimit=50
+accuracyLimit=97
 
 #wantedFrameNum=int(input("Type the number of frame that you want examine: "))
 #accuracyLimit=int(input("Type the number of accuracy limit that you want (max->100, min->0) : "))
@@ -20,6 +20,8 @@ accuracyLimit=0 if accuracyLimit<0 else 100 if accuracyLimit>100 else accuracyLi
 #print(face_recognition.compare_faces([encodedTemp], tester))
 #cv2.imshow("tester-{}".format(getLastImgNumber()),cv2.imread("tester/{}".format(os.listdir('tester')[index])))
 #cv2.imshow("obj-{}".format(getLastImgNumber()),ımgTemp)
+#cv2.waitKey(0)
+#cv2.imshow("s",cv2.imread("output/target105-100%.jpg"))
 #cv2.waitKey(0)
 
 def appendErrorLog(write):
@@ -65,7 +67,6 @@ def simpleTest(ımgTemp,testerArr):
     
     return accuracyPercentage
 
-
 def offsetCrop(locations,offsetPx):
     newLocations=[]     
     for index,loc in enumerate(locations): #locations should be x1 y1 x2 y2
@@ -79,6 +80,8 @@ def offsetCrop(locations,offsetPx):
     return newLocations
 
 def formatCustomDigit(number,digitNumberOfReturn):
+    if type(number)!=type(5):
+        return number
     counter=0
     holdNumber=number
     while(number>=1):
@@ -87,27 +90,45 @@ def formatCustomDigit(number,digitNumberOfReturn):
     
     return "0"*(digitNumberOfReturn-counter)+str(holdNumber)
 
+def getVideoLengths():  
+    videoLengths=[]  
+    for videoName in os.listdir('inputVideos'):
+        cap = cv2.VideoCapture('inputVideos/{}'.format(videoName))
+        videoLengths.append(cap.get(cv2.CAP_PROP_FRAME_COUNT)/cap.get(cv2.CAP_PROP_FPS))
+    
+    return videoLengths
 
 
-encodedTesters = encodeTesters()
 frameCounter,savedImg,noiseImg,videoCnt,examinedFramescnt=0,0,0,0,0
 
+print("Tester encoding started!")
+encodedTesters = encodeTesters()
+print("Tester encoding completed!")
 sfr = SimpleFacerec()
 sfr.load_encoding_images("images/")
 print("Started to capture ..!")
-
 logWrite("","errorLog.txt")
-#(Frame number / scalerConstant) iteration will be executed
 
-wantedFrameNum/=len(os.listdir('inputVideos')) if wantedFrameNum > len(os.listdir('inputVideos')) else wantedFrameNum
-wantedFrameNum=math.ceil(wantedFrameNum)
-for videoName in os.listdir('inputVideos'):
+
+
+weightedDistributionOfWantedLengths=[]
+
+videoLengths=getVideoLengths()
+for lengths in videoLengths:
+    weightedDistributionOfWantedLengths.append(int(lengths*wantedFrameNum/sum(videoLengths)))
+    
+print(weightedDistributionOfWantedLengths)
+
+
+
+for index,videoName in enumerate(os.listdir('inputVideos')):
     videoCnt+=1
     frameCounter=1
     cap = cv2.VideoCapture('inputVideos/{}'.format(videoName))
-    
+
     videdoWidth  = cap.get(cv2.CAP_PROP_FRAME_WIDTH);videoHeight = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  
     
+    wantedFrameNum=weightedDistributionOfWantedLengths[index]
     videoDuration = cap.get(cv2.CAP_PROP_FRAME_COUNT)/cap.get(cv2.CAP_PROP_FPS)
     frameScaler=math.ceil(cap.get(cv2.CAP_PROP_FRAME_COUNT)/(wantedFrameNum)) #-> it looks frames time: frame/constant
     examinedFramescnt+=(wantedFrameNum)
@@ -137,10 +158,12 @@ for videoName in os.listdir('inputVideos'):
                     croppedImage= frame[y1:y2,x1:x2]
 
                     if type(simpleTest(croppedImage,encodedTesters))!=type("^_^") and simpleTest(croppedImage,encodedTesters)>accuracyLimit:
-                        cv2.imwrite('output/target{}%{}.jpg'.format(getLastImgNumber(),str(simpleTest(croppedImage,encodedTesters))),croppedImage)
+                        cv2.imwrite('output/target{}-{}%.jpg'.format(getLastImgNumber(),
+                            str(formatCustomDigit(simpleTest(croppedImage,encodedTesters),2))),croppedImage)
                         savedImg+=1
                     else:
-                        cv2.imwrite('noise/noise{}%{}.jpg'.format(getLastImgNumber(),str(simpleTest(croppedImage,encodedTesters))),croppedImage)
+                        cv2.imwrite('noise/noise{}-{}%.jpg'.format(getLastImgNumber(),
+                            str(formatCustomDigit(simpleTest(croppedImage,encodedTesters),2))),croppedImage)
                         noiseImg+=1
                     logWrite((int(getLastImgNumber())+1),'fileNumberLog.txt')   
                 

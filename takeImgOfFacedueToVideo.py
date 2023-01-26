@@ -26,19 +26,16 @@ def encodeTesters():
         testerArr.append(tester_encoding)
     return testerArr
 
-def simpleTest(ımgTemp,testerArr):    
-    encodedTemp = face_recognition.face_encodings(ımgTemp)
+def simpleTest(ımgTemp,testerArr): 
+    rgb_img = cv2.cvtColor(ımgTemp, cv2.COLOR_BGR2RGB)
+    encodedTemp = face_recognition.face_encodings(rgb_img)
     accuracyCnt=0
     
     for tester in testerArr:
-        try:
-            if face_recognition.compare_faces([encodedTemp], tester):
-                accuracyCnt+=1
-        except:
-            return 0
-            pass
-    
-    if accuracyCnt>=(len(testerArr)/2):
+        if face_recognition.compare_faces([encodedTemp], tester):
+            accuracyCnt+=1
+
+    if accuracyCnt>=(len(testerArr)-1):
         return 1
     else:
         return 0
@@ -57,60 +54,61 @@ def offsetCrop(locations,offsetPx):
 
 encodedTesters = encodeTesters()
 
-frameCounter,savedImg,noiseImg,cantDetectCnt=0,0,0,0
+frameCounter,savedImg,noiseImg,videoCnt,examinedFramescnt=0,0,0,0,0,0
 globalTımer=time.time()
-cantDetectFlag=True
-frameScaler=1000
-videoCnt=0
+singleTımer=time.time()
 
 sfr = SimpleFacerec()
 sfr.load_encoding_images("images/")
 print("Started to capture ..!")
 
+#(Frame number / scalerConstant) iteration will be executed
+scalerConstant=30
+
 for videoName in os.listdir('inputVideos'):
     videoCnt+=1
-    frameCounter=0
+    frameCounter=1
     cap = cv2.VideoCapture('inputVideos/{}'.format(videoName))
+
+    videoFps = cap.get(cv2.CAP_PROP_FPS)
     videdoWidth  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)    # float `width`
     videoHeight = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  
+    frameScaler=math.ceil(cap.get(cv2.CAP_PROP_FRAME_COUNT)/(cap.get(cv2.CAP_PROP_FRAME_COUNT)/scalerConstant)) #-> it looks frames time: frame/constant
+    examinedFramescnt+=(cap.get(cv2.CAP_PROP_FRAME_COUNT)/scalerConstant)
 
-
-    while(cap.isOpened()):
-        
+    singleTımer=time.time()
+    while(1):
         frameCounter+=1
         cap.set(cv2.CAP_PROP_POS_FRAMES,frameCounter*frameScaler)
         ret, frame = cap.read()
-        
         if ret == True:
             progressPercentage =(cap.get(cv2.CAP_PROP_POS_FRAMES)/cap.get(cv2.CAP_PROP_FRAME_COUNT))*100
-            passedTıme=math.floor(time.time()-globalTımer)
-            Eta = math.floor(passedTıme*(100-progressPercentage)/progressPercentage) if progressPercentage!=0 else 1
-            
+            passedTıme=math.floor(time.time()-singleTımer)
+            #Eta = math.floor(passedTıme*(100-progressPercentage)/progressPercentage) if progressPercentage!=0 else 1
             os.system("cls")
-            print("Video Number: {} ProgressPercentage: %{}    Time passed: {}min {}sec     ETA: {}min {}sec".format(videoCnt,round(progressPercentage,2),
-            math.floor(passedTıme/60),math.floor(passedTıme%60),math.floor(Eta/60),math.floor(Eta%60)))
-
+            print("{} - {}  ProgressPercentage: %{}   Video Length: {}min {}sec    {} frames will be examined for this video".format(
+                videoCnt,videoName,round(progressPercentage,2),int((cap.get(cv2.CAP_PROP_FRAME_COUNT)/videoFps)/60),
+                int((cap.get(cv2.CAP_PROP_FRAME_COUNT)/videoFps)%60),
+                int(cap.get(cv2.CAP_PROP_FRAME_COUNT)/scalerConstant)))
 
             face_locations, face_names =sfr.detect_known_faces(frame) # screenshot in known_faces()
-            for face_loc, face_names in zip(face_locations, face_names):
+            for face_loc, face_names in zip(face_locations, face_names): 
                 if face_names!="Unknown":
-                    cantDetectFlag=False
                     y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
 
                     [x1,y1,x2,y2]=offsetCrop([x1,y1,x2,y2],math.floor((x2-x1)/3))
                     croppedImage= frame[y1:y2,x1:x2]
 
-                    if True:
+                    if simpleTest(croppedImage,encodedTesters):
                         cv2.imwrite('output/target{}.jpg'.format(getLastImgNumber()),croppedImage);savedImg+=1
                     else:
                         cv2.imwrite('noise/noise{}.jpg'.format(getLastImgNumber()),croppedImage);noiseImg+=1
-                    logLastImgNumber(int(getLastImgNumber())+1)      
-            if cantDetectFlag:
-                cantDetectCnt+=1
-            cantDetectFlag=True
-
+                    logLastImgNumber(int(getLastImgNumber())+1)   
+                
         else: 
-            os.system("cls")
-            print("%100 Completed     Time passed: {}min {}sec    # of Saved Images: {}     # of Noise Images: {}    # of CantDetectImg: {}    # of input video: {}"
-                .format(int(int(time.time()-globalTımer)/60),int(int(time.time()-globalTımer)%60),savedImg,noiseImg,cantDetectCnt,videoCnt))
+            if videoCnt>= len(os.listdir('inputVideos')):
+                os.system("cls")
+                print("%100 Completed , Time passed: {}min {}sec  ,  # of Saved Images: {}  ,  # of Noise Images: {}  ,  # of CantDetectFace: {}  ,  # of examined frames: {}  ,  # of input video: {}"
+                    .format(int(int(time.time()-globalTımer)/60),int(int(time.time()-globalTımer)%60),savedImg,noiseImg,
+                    int(examinedFramescnt)-savedImg-noiseImg,int(examinedFramescnt),videoCnt))
             break

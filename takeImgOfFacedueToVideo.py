@@ -10,7 +10,7 @@ import os
 globalTımer=time.time()
 
 #default
-wantedFrameNum=500
+wantedFrameNum=100
 accuracyLimit=97
 distributionChoice=1
 
@@ -27,7 +27,7 @@ accuracyLimit=0 if accuracyLimit<0 else 100 if accuracyLimit>100 else accuracyLi
 #cv2.waitKey(0)
 
 def appendErrorLog(write):
-    f=open('log\errorLog.txt','a')
+    f=open('log/faceDetectAccuracyLog.txt','a')
     f.write(str(write)+"\n")
     f.close()
 
@@ -61,13 +61,13 @@ def simpleTest(ımgTemp,testerArr):
         if face_recognition.compare_faces([encodedTemp], tester)==[True]:    
             accuracyCnt+=1
     
-    accuracyPercentage=int((accuracyCnt/len(os.listdir('tester')))*100)
+    accuracyPercentage=round((accuracyCnt/len(os.listdir('tester')))*100,2)
     if accuracyPercentage>accuracyLimit:
-        appendErrorLog("Done, Accur: {}".format(accuracyPercentage))
+        appendErrorLog("Target Detected!  Img Number: {0:4}   Accuracy: %{0:5}".format(getLastImgNumber(),accuracyPercentage))
     else:
-        appendErrorLog("Error, Accur: {}".format(accuracyPercentage))
+        appendErrorLog("Noise!            Img Number: {0:20}  Accuracy: %{0:5}".format(getLastImgNumber(),accuracyPercentage))
     
-    return accuracyPercentage
+    return int(accuracyPercentage)
 
 def offsetCrop(locations,offsetPx):
     newLocations=[]     
@@ -109,7 +109,7 @@ print("Tester encoding completed!")
 sfr = SimpleFacerec()
 sfr.load_encoding_images("images/")
 print("Started to capture ..!")
-logWrite("","errorLog.txt")
+logWrite("","faceDetectAccuracyLog.txt")
 
 
 
@@ -124,7 +124,7 @@ for lengths in videoLengths:
 if distributionChoice == 1:
     wantedFrameNum/=len(os.listdir('inputVideos')) if wantedFrameNum > len(os.listdir('inputVideos')) else wantedFrameNum
     wantedFrameNum=math.ceil(wantedFrameNum)
-    weightedDistributionOfWantedLengths=[wantedFrameNum]*os.listdir('inputVideos')
+    weightedDistributionOfWantedLengths=[wantedFrameNum]*len(os.listdir('inputVideos'))
 else:
     pass
 
@@ -165,11 +165,11 @@ for index,videoName in enumerate(os.listdir('inputVideos')):
                     croppedImage= frame[y1:y2,x1:x2]
 
                     if type(simpleTest(croppedImage,encodedTesters))!=type("^_^") and simpleTest(croppedImage,encodedTesters)>accuracyLimit:
-                        cv2.imwrite('output/target{}-{}%.jpg'.format(getLastImgNumber(),
+                        cv2.imwrite('output/target{}-%{}.jpg'.format(getLastImgNumber(),
                             str(formatCustomDigit(simpleTest(croppedImage,encodedTesters),2))),croppedImage)
                         savedImg+=1
                     else:
-                        cv2.imwrite('noise/noise{}-{}%.jpg'.format(getLastImgNumber(),
+                        cv2.imwrite('noise/noise{}-%{}.jpg'.format(getLastImgNumber(),
                             str(formatCustomDigit(simpleTest(croppedImage,encodedTesters),2))),croppedImage)
                         noiseImg+=1
                     logWrite((int(getLastImgNumber())+1),'fileNumberLog.txt')   

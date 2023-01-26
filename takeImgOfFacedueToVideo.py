@@ -9,7 +9,7 @@ import os
 frameCursor,savedImg,noiseImg,videoCnt,examinedFramescnt,cantDetectCnt,DetectFaceFlag=0,0,0,0,0,0,True
 
 #default
-wantedFrameNum=100
+wantedFrameNum=500
 accuracyLimit=97
 distributionChoice=0
 clearFolderContentChoice=1

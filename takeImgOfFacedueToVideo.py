@@ -6,9 +6,22 @@ import math
 import cv2
 import os
 
-def logLastImgNumber(number):
-    f=open('log\log.txt','w')
-    f.write(str(number))
+
+globalTımer=time.time()
+
+
+wantedFrameNum=input("Type the number of frame that you want examine: ")
+accuracyLimit=input("Type the number of accuracy limit that you want (max->100, min->0) : ")
+accuracyLimit=0 if accuracyLimit<0 else 100 if accuracyLimit>100 else accuracyLimit  
+
+def appendErrorLog(write):
+    f=open('log\errorLog.txt','a')
+    f.write(str(write)+"\n")
+    f.close()
+
+def logWrite(write,location):
+    f=open('log\{}'.format(location),'w')
+    f.write(str(write))
     f.close()
 
 def getLastImgNumber():
@@ -28,16 +41,28 @@ def encodeTesters():
 
 def simpleTest(ımgTemp,testerArr): 
     rgb_img = cv2.cvtColor(ımgTemp, cv2.COLOR_BGR2RGB)
-    encodedTemp = face_recognition.face_encodings(rgb_img)
+    try:
+        encodedTemp = face_recognition.face_encodings(rgb_img)[0]
+    except:
+        appendErrorLog("indexErr")
+        return 0
     accuracyCnt=0
     
-    for tester in testerArr:
-        if face_recognition.compare_faces([encodedTemp], tester):
+    for index,tester in enumerate(testerArr):
+        #print(face_recognition.compare_faces([encodedTemp], tester))
+        #cv2.imshow("tester-{}".format(getLastImgNumber()),cv2.imread("tester/{}".format(os.listdir('tester')[index])))
+        #cv2.imshow("obj-{}".format(getLastImgNumber()),ımgTemp)
+        #cv2.waitKey(0)
+        
+        if face_recognition.compare_faces([encodedTemp], tester)==[True]:    
             accuracyCnt+=1
-
-    if accuracyCnt>=(len(testerArr)-1):
-        return 1
+    
+    accuracyPercentage=round((accuracyCnt/len(os.listdir('tester')))*100,2)
+    if accuracyPercentage>50:
+        appendErrorLog("Done, Accur: {}".format(accuracyPercentage))
+        return accuracyPercentage
     else:
+        appendErrorLog("Error, Accur: {}".format(accuracyPercentage))
         return 0
 
 def offsetCrop(locations,offsetPx):
@@ -52,44 +77,55 @@ def offsetCrop(locations,offsetPx):
         newLocations.append(loc)
     return newLocations
 
-encodedTesters = encodeTesters()
+def formatCustomDigit(number,digitNumberOfReturn):
+    counter=0
+    holdNumber=number
+    while(number>=1):
+        number/=10
+        counter+=1
+    
+    return "0"*(digitNumberOfReturn-counter)+str(holdNumber)
 
+
+
+encodedTesters = encodeTesters()
 frameCounter,savedImg,noiseImg,videoCnt,examinedFramescnt=0,0,0,0,0
-globalTımer=time.time()
-singleTımer=time.time()
 
 sfr = SimpleFacerec()
 sfr.load_encoding_images("images/")
 print("Started to capture ..!")
 
+logWrite("","errorLog.txt")
 #(Frame number / scalerConstant) iteration will be executed
-scalerConstant=30
 
+wantedFrameNum/=len(os.listdir('inputVideos')) if wantedFrameNum > len(os.listdir('inputVideos')) else wantedFrameNum
+wantedFrameNum=math.ceil(wantedFrameNum)
 for videoName in os.listdir('inputVideos'):
     videoCnt+=1
     frameCounter=1
     cap = cv2.VideoCapture('inputVideos/{}'.format(videoName))
+    
+    videdoWidth  = cap.get(cv2.CAP_PROP_FRAME_WIDTH);videoHeight = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  
+    
+    videoDuration = cap.get(cv2.CAP_PROP_FRAME_COUNT)/cap.get(cv2.CAP_PROP_FPS)
+    frameScaler=math.ceil(cap.get(cv2.CAP_PROP_FRAME_COUNT)/(wantedFrameNum)) #-> it looks frames time: frame/constant
+    examinedFramescnt+=(wantedFrameNum)
 
-    videoFps = cap.get(cv2.CAP_PROP_FPS)
-    videdoWidth  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)    # float `width`
-    videoHeight = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  
-    frameScaler=math.ceil(cap.get(cv2.CAP_PROP_FRAME_COUNT)/(cap.get(cv2.CAP_PROP_FRAME_COUNT)/scalerConstant)) #-> it looks frames time: frame/constant
-    examinedFramescnt+=(cap.get(cv2.CAP_PROP_FRAME_COUNT)/scalerConstant)
-
-    singleTımer=time.time()
+    localTimer=time.time()
     while(1):
         frameCounter+=1
         cap.set(cv2.CAP_PROP_POS_FRAMES,frameCounter*frameScaler)
         ret, frame = cap.read()
         if ret == True:
             progressPercentage =(cap.get(cv2.CAP_PROP_POS_FRAMES)/cap.get(cv2.CAP_PROP_FRAME_COUNT))*100
-            passedTıme=math.floor(time.time()-singleTımer)
+            passedTıme=math.floor(time.time()-localTimer)
             #Eta = math.floor(passedTıme*(100-progressPercentage)/progressPercentage) if progressPercentage!=0 else 1
             os.system("cls")
-            print("{} - {}  ProgressPercentage: %{}   Video Length: {}min {}sec    {} frames will be examined for this video".format(
-                videoCnt,videoName,round(progressPercentage,2),int((cap.get(cv2.CAP_PROP_FRAME_COUNT)/videoFps)/60),
-                int((cap.get(cv2.CAP_PROP_FRAME_COUNT)/videoFps)%60),
-                int(cap.get(cv2.CAP_PROP_FRAME_COUNT)/scalerConstant)))
+            print("{} - {}  ProgressPercentage: %{}   Video Length: {}h:{}m:{}s    {} frames will be examined for this video".format(
+                videoCnt,videoName,round(progressPercentage,2),formatCustomDigit(int(videoDuration/(60*60)),2)
+                ,formatCustomDigit(int((videoDuration/(60))%60),2),
+                formatCustomDigit(int(videoDuration%60),2),
+                wantedFrameNum))
 
             face_locations, face_names =sfr.detect_known_faces(frame) # screenshot in known_faces()
             for face_loc, face_names in zip(face_locations, face_names): 
@@ -99,11 +135,13 @@ for videoName in os.listdir('inputVideos'):
                     [x1,y1,x2,y2]=offsetCrop([x1,y1,x2,y2],math.floor((x2-x1)/3))
                     croppedImage= frame[y1:y2,x1:x2]
 
-                    if simpleTest(croppedImage,encodedTesters):
-                        cv2.imwrite('output/target{}.jpg'.format(getLastImgNumber()),croppedImage);savedImg+=1
+                    if simpleTest(croppedImage,encodedTesters)!=0:
+                        cv2.imwrite('output/target{}_%{}.jpg'.format(getLastImgNumber(),int(simpleTest(croppedImage,encodedTesters))),croppedImage)
+                        savedImg+=1
                     else:
-                        cv2.imwrite('noise/noise{}.jpg'.format(getLastImgNumber()),croppedImage);noiseImg+=1
-                    logLastImgNumber(int(getLastImgNumber())+1)   
+                        cv2.imwrite('noise/noise{}_%{}.jpg'.format(getLastImgNumber(),int(simpleTest(croppedImage,encodedTesters))),croppedImage)
+                        noiseImg+=1
+                    logWrite((int(getLastImgNumber())+1),'log.txt')   
                 
         else: 
             if videoCnt>= len(os.listdir('inputVideos')):

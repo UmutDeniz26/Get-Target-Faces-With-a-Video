@@ -1,30 +1,27 @@
 from simple_facerec import SimpleFacerec
 import face_recognition
-import numpy as np
 import time
 import math
 import cv2
 import os
 
 
-globalTımer=time.time()
+frameCursor,savedImg,noiseImg,videoCnt,examinedFramescnt,cantDetectCnt,DetectFaceFlag=0,0,0,0,0,0,True
 
 #default
-wantedFrameNum=60
+wantedFrameNum=100
 accuracyLimit=97
 distributionChoice=0
+clearFolderContentChoice=1
+cropOffsetDivider=3
 
 #wantedFrameNum=int(input("Type the number of frame that you want examine: "))
 #accuracyLimit=int(input("Type the number of accuracy limit that you want (max->100, min->0) : "))
 #distributionChoice=int(input("Type the distribution choice (1 -> Same weights, else -> Weighted distribution due to video lengths) : "))
-accuracyLimit=0 if accuracyLimit<0 else 100 if accuracyLimit>100 else accuracyLimit  
+#clearFolderContentChoice=int(input("Type the clear content choice (1 -> Clear, else -> Hold) : "))
 
-#print(face_recognition.compare_faces([encodedTemp], tester))
-#cv2.imshow("tester-{}".format(getLastImgNumber()),cv2.imread("tester/{}".format(os.listdir('tester')[index])))
-#cv2.imshow("obj-{}".format(getLastImgNumber()),ımgTemp)
-#cv2.waitKey(0)
-#cv2.imshow("s",cv2.imread("output/target105-100%.jpg"))
-#cv2.waitKey(0)
+#accuracy correction
+accuracyLimit=0 if accuracyLimit<0 else 100 if accuracyLimit>100 else accuracyLimit  
 
 def appendErrorLog(write):
     f=open('log/faceDetectAccuracyLog.txt','a')
@@ -44,8 +41,8 @@ def getLastImgNumber():
 
 def encodeTesters():
     testerArr=[]
-    for names in os.listdir('tester'):
-        tester = cv2.cvtColor(cv2.imread("tester/{}".format(names)), cv2.COLOR_BGR2RGB)
+    for names in os.listdir('TargetImagesToTest'):
+        tester = cv2.cvtColor(cv2.imread("TargetImagesToTest/{}".format(names)), cv2.COLOR_BGR2RGB)
         tester_encoding = face_recognition.face_encodings(tester)[0]
         testerArr.append(tester_encoding)
     return testerArr
@@ -61,11 +58,11 @@ def simpleTest(ımgTemp,testerArr):
         if face_recognition.compare_faces([encodedTemp], tester)==[True]:    
             accuracyCnt+=1
     
-    accuracyPercentage=round((accuracyCnt/len(os.listdir('tester')))*100,2)
+    accuracyPercentage=round((accuracyCnt/len(os.listdir('TargetImagesToTest')))*100,2)
     if accuracyPercentage>accuracyLimit:
-        appendErrorLog("Target Detected!  Img Number: {0:4}   Accuracy: {1:4}".format(getLastImgNumber(),accuracyPercentage))
+        appendErrorLog("Target Detected!            Img Number: {0:4}          Accuracy: %{1:4}".format(getLastImgNumber(),accuracyPercentage))
     else:
-        appendErrorLog("Noise!            Img Number: {0:4}   Accuracy: {1:4}".format(getLastImgNumber(),accuracyPercentage))
+        appendErrorLog("Noise!                      Img Number: {0:4}          Accuracy: %{1:4}".format(getLastImgNumber(),accuracyPercentage))
     
     return int(accuracyPercentage)
 
@@ -100,88 +97,125 @@ def getVideoLengths():
     
     return videoLengths
 
+def clearFolderContent(folderName):
+    for f in os.listdir('{}'.format(folderName)):
+        os.remove('{}/{}'.format(folderName,f))
 
-frameCounter,savedImg,noiseImg,videoCnt,examinedFramescnt,cantDetectCnt,cantDetectFace=0,0,0,0,0,0,True
 
+globalTımer=time.time()
+
+#Encode testers
 print("Tester encoding started!")
 encodedTesters = encodeTesters()
 print("Tester encoding completed!")
-sfr = SimpleFacerec()
-sfr.load_encoding_images("images/")
-print("Started to capture ..!")
-logWrite("","faceDetectAccuracyLog.txt")
 
+#Load Searcher
+sfr = SimpleFacerec()
+sfr.load_encoding_images("TargetImagesToSearch/")
+print("Started to capture ..!")
+
+
+#initial logs
+logWrite("","faceDetectAccuracyLog.txt");logWrite("1","fileNumberLog.txt")
+
+#Clears selected folders
+if clearFolderContentChoice:
+    clearFolderContent('output');clearFolderContent('noise');clearFolderContent('cantDetect')
 
 weightedDistributionOfWantedLengths=[]
+for lengths in getVideoLengths():
 
-videoLengths=getVideoLengths()
-for lengths in videoLengths:
-    weightedDistributionOfWantedLengths.append(int(lengths*wantedFrameNum/sum(videoLengths)))
+    #calculate Distribution weights
+    weightedDistributionOfWantedLengths.append(int(lengths*wantedFrameNum/sum(getVideoLengths())))
+
+
+wantedFrameNum/=len(os.listdir('inputVideos')) if wantedFrameNum > len(os.listdir('inputVideos')) else wantedFrameNum
 
 
 if distributionChoice == 1:
-    wantedFrameNum/=len(os.listdir('inputVideos')) if wantedFrameNum > len(os.listdir('inputVideos')) else wantedFrameNum
-    wantedFrameNum=math.ceil(wantedFrameNum)
-    weightedDistributionOfWantedLengths=[wantedFrameNum]*len(os.listdir('inputVideos'))
-else:
-    pass
+
+    #overwrite weights due to set same weights to all videos
+    weightedDistributionOfWantedLengths=[math.ceil(wantedFrameNum)]*len(os.listdir('inputVideos'))
+
 
 for index,videoName in enumerate(os.listdir('inputVideos')):
-    videoCnt+=1
-    frameCounter=1
-    cap = cv2.VideoCapture('inputVideos/{}'.format(videoName))
-
-    videdoWidth  = cap.get(cv2.CAP_PROP_FRAME_WIDTH);videoHeight = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  
     
+    #Setups to search faces in video
+    videoCnt+=1
+    frameCursor=1
+    
+    #load the video
+    cap = cv2.VideoCapture('inputVideos/{}'.format(videoName))
+    
+    #distrube the weights to set scale factor
     wantedFrameNum=weightedDistributionOfWantedLengths[index]
+    
+    #get video attributes
+    videdoWidth  = cap.get(cv2.CAP_PROP_FRAME_WIDTH);
+    videoHeight = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  
     videoDuration = cap.get(cv2.CAP_PROP_FRAME_COUNT)/cap.get(cv2.CAP_PROP_FPS)
+
     frameScaler=math.ceil(cap.get(cv2.CAP_PROP_FRAME_COUNT)/(wantedFrameNum)) #-> it looks frames time: frame/constant
     examinedFramescnt+=(wantedFrameNum)
-
     localTimer=time.time()
-    while(1):
-        frameCounter+=1
-        cap.set(cv2.CAP_PROP_POS_FRAMES,frameCounter*frameScaler)
+    
+
+    #Starts searching
+    while(True):
+        frameCursor+=1
+
+        #cursor * scaler -> if there is 18000frame in video -> for example, scaler is 500 ==> frameCursor would be 500,1000,1500 ... 18000
+        cap.set(cv2.CAP_PROP_POS_FRAMES,frameCursor*frameScaler)
         ret, frame = cap.read()
-        cantDetectFace=True
+        DetectFaceFlag=False
         if ret == True:
+
             progressPercentage =(cap.get(cv2.CAP_PROP_POS_FRAMES)/cap.get(cv2.CAP_PROP_FRAME_COUNT))*100
             passedTıme=math.floor(time.time()-localTimer)
+            
+            #Information about process
             os.system("cls")
             print("{} - {}  ProgressPercentage: %{}   Video Length: {}h:{}m:{}s  frameScaler: {}    {} frames will be examined for this video".format(
                 videoCnt,videoName,round(progressPercentage,2),formatCustomDigit(int(videoDuration/(60*60)),2)
                 ,formatCustomDigit(int((videoDuration/(60))%60),2),formatCustomDigit(int(videoDuration%60),2),
                 round(cap.get(cv2.CAP_PROP_FRAME_COUNT)/wantedFrameNum,2),wantedFrameNum))
-
-            face_locations, face_names =sfr.detect_known_faces(frame) # screenshot in known_faces()
+            
+            #searchs faces in the image
+            face_locations, face_names =sfr.detect_known_faces(frame) 
             for face_loc, face_names in zip(face_locations, face_names): 
-                if face_names!="Unknown":
-                    cantDetectFace=False
-                    y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
 
-                    [x1,y1,x2,y2]=offsetCrop([x1,y1,x2,y2],math.floor((x2-x1)/3))
+                #if there is this face in the TargetImagesToSearch file
+                if face_names!="Unknown":
+                    DetectFaceFlag=True
+
+                    #crop image due to face
+                    y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
+                    [x1,y1,x2,y2]=offsetCrop([x1,y1,x2,y2],math.floor((x2-x1)/cropOffsetDivider))
                     croppedImage= frame[y1:y2,x1:x2]
 
-                    if type(simpleTest(croppedImage,encodedTesters))!=type("^_^") and simpleTest(croppedImage,encodedTesters)>accuracyLimit:
-                        cv2.imwrite('output/target{}-%{}.jpg'.format(getLastImgNumber(),
-                            str(formatCustomDigit(simpleTest(croppedImage,encodedTesters),2))),croppedImage)
+                    #simple test due to TargetImagesToTest folder
+                    testResult=simpleTest(croppedImage,encodedTesters) # result is in type of %
+                    if type(simpleTest(croppedImage,encodedTesters))!=type("String") and testResult>accuracyLimit:
+                        cv2.imwrite('output/target{}-%{}.jpg'.format(getLastImgNumber(),testResult),croppedImage)
                         savedImg+=1
                         break
                     else:
-                        cv2.imwrite('noise/noise{}-%{}.jpg'.format(getLastImgNumber(),
-                            str(formatCustomDigit(simpleTest(croppedImage,encodedTesters),2))),croppedImage)
+                        cv2.imwrite('noise/noise{}-%{}.jpg'.format(getLastImgNumber(),testResult),croppedImage)
                         noiseImg+=1   
-            appendErrorLog(cantDetectFace)
-            if cantDetectFace==True:
+
+            #neither targetface nor noiseface
+            if DetectFaceFlag==False:
                 cantDetectCnt+=1
                 cv2.imwrite('cantDetect/cantDetect{}.jpg'.format(getLastImgNumber()),frame)
 
         else: 
+            #searching is over
             if videoCnt>= len(os.listdir('inputVideos')):
                 os.system("cls")
-                print("{}%100 Completed , Time passed: {}min {}sec  ,  # of Saved Images: {}  ,  # of Noise Images: {}  ,  # of CantDetectFace: {}  ,  # of examined frames: {}  ,  # of input video: {}"
+                print("{}%100 Completed , Time passed: {}min {}sec  ,  # of Saved Images: {}  ,  # of Noise Images: {}  ,  # of Undetected face: {}  ,  # of examined frames: {}  ,  # of input video: {}"
                     .format(cantDetectCnt,int(int(time.time()-globalTımer)/60),int(int(time.time()-globalTımer)%60),savedImg,noiseImg,
                     int(examinedFramescnt)-savedImg-noiseImg,int(examinedFramescnt),videoCnt))
             break
         
+        #To create folder names
         logWrite((int(getLastImgNumber())+1),'fileNumberLog.txt')

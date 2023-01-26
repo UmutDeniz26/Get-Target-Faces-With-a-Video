@@ -1,187 +1,50 @@
-Target Detected!  Img Number: 575    Accuracy: 100.0
-Target Detected!  Img Number: 575    Accuracy: 100.0
-Target Detected!  Img Number: 575    Accuracy: 100.0
-False
-Target Detected!  Img Number: 576    Accuracy: 100.0
-Target Detected!  Img Number: 576    Accuracy: 100.0
-Target Detected!  Img Number: 576    Accuracy: 100.0
-False
-Target Detected!  Img Number: 577    Accuracy: 100.0
-Target Detected!  Img Number: 577    Accuracy: 100.0
-Target Detected!  Img Number: 577    Accuracy: 100.0
-False
-Target Detected!  Img Number: 578    Accuracy: 100.0
-Target Detected!  Img Number: 578    Accuracy: 100.0
-Target Detected!  Img Number: 578    Accuracy: 100.0
-False
-Target Detected!  Img Number: 579    Accuracy: 100.0
-Target Detected!  Img Number: 579    Accuracy: 100.0
-Target Detected!  Img Number: 579    Accuracy: 100.0
-False
-Target Detected!  Img Number: 580    Accuracy: 100.0
-Target Detected!  Img Number: 580    Accuracy: 100.0
-Target Detected!  Img Number: 580    Accuracy: 100.0
-False
-Target Detected!  Img Number: 581    Accuracy: 100.0
-Target Detected!  Img Number: 581    Accuracy: 100.0
-Target Detected!  Img Number: 581    Accuracy: 100.0
-False
-True
-Target Detected!  Img Number: 583    Accuracy: 100.0
-Target Detected!  Img Number: 583    Accuracy: 100.0
-Target Detected!  Img Number: 583    Accuracy: 100.0
-False
-Target Detected!  Img Number: 584    Accuracy: 100.0
-Target Detected!  Img Number: 584    Accuracy: 100.0
-Target Detected!  Img Number: 584    Accuracy: 100.0
-False
-True
-Noise!            Img Number: 586    Accuracy:  4.0
-Noise!            Img Number: 586    Accuracy:  4.0
-Noise!            Img Number: 586    Accuracy:  4.0
-Target Detected!  Img Number: 586    Accuracy: 100.0
-Target Detected!  Img Number: 586    Accuracy: 100.0
-Target Detected!  Img Number: 586    Accuracy: 100.0
-False
-True
-Target Detected!  Img Number: 588    Accuracy: 100.0
-Target Detected!  Img Number: 588    Accuracy: 100.0
-Target Detected!  Img Number: 588    Accuracy: 100.0
-False
-Target Detected!  Img Number: 589    Accuracy: 100.0
-Target Detected!  Img Number: 589    Accuracy: 100.0
-Target Detected!  Img Number: 589    Accuracy: 100.0
-False
-Target Detected!  Img Number: 590    Accuracy: 100.0
-Target Detected!  Img Number: 590    Accuracy: 100.0
-Target Detected!  Img Number: 590    Accuracy: 100.0
-False
-True
-Target Detected!  Img Number: 592    Accuracy: 100.0
-Target Detected!  Img Number: 592    Accuracy: 100.0
-Target Detected!  Img Number: 592    Accuracy: 100.0
-False
-Noise!            Img Number: 593    Accuracy:  8.0
-Noise!            Img Number: 593    Accuracy:  8.0
-Noise!            Img Number: 593    Accuracy:  8.0
-False
-Noise!            Img Number: 594    Accuracy: 20.0
-Noise!            Img Number: 594    Accuracy: 20.0
-Noise!            Img Number: 594    Accuracy: 20.0
-False
-Target Detected!  Img Number: 595    Accuracy: 100.0
-Target Detected!  Img Number: 595    Accuracy: 100.0
-Target Detected!  Img Number: 595    Accuracy: 100.0
-False
-Target Detected!  Img Number: 596    Accuracy: 100.0
-Target Detected!  Img Number: 596    Accuracy: 100.0
-Target Detected!  Img Number: 596    Accuracy: 100.0
-False
-Target Detected!  Img Number: 597    Accuracy: 100.0
-Target Detected!  Img Number: 597    Accuracy: 100.0
-Target Detected!  Img Number: 597    Accuracy: 100.0
-False
-Target Detected!  Img Number: 598    Accuracy: 100.0
-Target Detected!  Img Number: 598    Accuracy: 100.0
-Target Detected!  Img Number: 598    Accuracy: 100.0
-False
-Target Detected!  Img Number: 599    Accuracy: 100.0
-Target Detected!  Img Number: 599    Accuracy: 100.0
-Target Detected!  Img Number: 599    Accuracy: 100.0
-False
-Target Detected!  Img Number: 600    Accuracy: 100.0
-Target Detected!  Img Number: 600    Accuracy: 100.0
-Target Detected!  Img Number: 600    Accuracy: 100.0
-False
-Noise!            Img Number: 601    Accuracy:  4.0
-Noise!            Img Number: 601    Accuracy:  4.0
-Noise!            Img Number: 601    Accuracy:  4.0
-False
-Target Detected!  Img Number: 602    Accuracy: 100.0
-Target Detected!  Img Number: 602    Accuracy: 100.0
-Target Detected!  Img Number: 602    Accuracy: 100.0
-False
-Noise!            Img Number: 603    Accuracy: 24.0
-Noise!            Img Number: 603    Accuracy: 24.0
-Noise!            Img Number: 603    Accuracy: 24.0
-False
-Target Detected!  Img Number: 604    Accuracy: 100.0
-Target Detected!  Img Number: 604    Accuracy: 100.0
-Target Detected!  Img Number: 604    Accuracy: 100.0
-False
-Noise!            Img Number: 605    Accuracy: 12.0
-Noise!            Img Number: 605    Accuracy: 12.0
-Noise!            Img Number: 605    Accuracy: 12.0
-False
-Target Detected!  Img Number: 606    Accuracy: 100.0
-Target Detected!  Img Number: 606    Accuracy: 100.0
-Target Detected!  Img Number: 606    Accuracy: 100.0
-False
-Noise!            Img Number: 607    Accuracy: 24.0
-Noise!            Img Number: 607    Accuracy: 24.0
-Noise!            Img Number: 607    Accuracy: 24.0
+Target Detected!            Img Number: 2             Accuracy: %100.0
+Target Detected!            Img Number: 2             Accuracy: %100.0
+Target Detected!            Img Number: 2             Accuracy: %100.0
 indexErr
 indexErr
-False
-Target Detected!  Img Number: 608    Accuracy: 100.0
-Target Detected!  Img Number: 608    Accuracy: 100.0
-Target Detected!  Img Number: 608    Accuracy: 100.0
-False
-indexErr
-indexErr
-False
-Target Detected!  Img Number: 610    Accuracy: 100.0
-Target Detected!  Img Number: 610    Accuracy: 100.0
-Target Detected!  Img Number: 610    Accuracy: 100.0
-False
-True
-Noise!            Img Number: 612    Accuracy:  4.0
-Noise!            Img Number: 612    Accuracy:  4.0
-Noise!            Img Number: 612    Accuracy:  4.0
-False
-Target Detected!  Img Number: 613    Accuracy: 100.0
-Target Detected!  Img Number: 613    Accuracy: 100.0
-Target Detected!  Img Number: 613    Accuracy: 100.0
-False
-Noise!            Img Number: 614    Accuracy:  0.0
-Noise!            Img Number: 614    Accuracy:  0.0
-Noise!            Img Number: 614    Accuracy:  0.0
-False
-Target Detected!  Img Number: 615    Accuracy: 100.0
-Target Detected!  Img Number: 615    Accuracy: 100.0
-Target Detected!  Img Number: 615    Accuracy: 100.0
-False
-True
-Target Detected!  Img Number: 617    Accuracy: 100.0
-Target Detected!  Img Number: 617    Accuracy: 100.0
-Target Detected!  Img Number: 617    Accuracy: 100.0
-False
-True
-Noise!            Img Number: 619    Accuracy:  4.0
-Noise!            Img Number: 619    Accuracy:  4.0
-Noise!            Img Number: 619    Accuracy:  4.0
-False
-Noise!            Img Number: 620    Accuracy:  4.0
-Noise!            Img Number: 620    Accuracy:  4.0
-Noise!            Img Number: 620    Accuracy:  4.0
-Target Detected!  Img Number: 620    Accuracy: 100.0
-Target Detected!  Img Number: 620    Accuracy: 100.0
-Target Detected!  Img Number: 620    Accuracy: 100.0
-False
-Noise!            Img Number: 621    Accuracy: 12.0
-Noise!            Img Number: 621    Accuracy: 12.0
-Noise!            Img Number: 621    Accuracy: 12.0
-Target Detected!  Img Number: 621    Accuracy: 100.0
-Target Detected!  Img Number: 621    Accuracy: 100.0
-Target Detected!  Img Number: 621    Accuracy: 100.0
-False
-Noise!            Img Number: 622    Accuracy: 12.0
-Noise!            Img Number: 622    Accuracy: 12.0
-Noise!            Img Number: 622    Accuracy: 12.0
-False
-True
-True
-Target Detected!  Img Number: 625    Accuracy: 100.0
-Target Detected!  Img Number: 625    Accuracy: 100.0
-Target Detected!  Img Number: 625    Accuracy: 100.0
-False
+Target Detected!            Img Number: 5             Accuracy: %100.0
+Target Detected!            Img Number: 5             Accuracy: %100.0
+Target Detected!            Img Number: 5             Accuracy: %100.0
+Target Detected!            Img Number: 7             Accuracy: %100.0
+Target Detected!            Img Number: 7             Accuracy: %100.0
+Target Detected!            Img Number: 7             Accuracy: %100.0
+Target Detected!            Img Number: 8             Accuracy: %100.0
+Target Detected!            Img Number: 8             Accuracy: %100.0
+Target Detected!            Img Number: 8             Accuracy: %100.0
+Target Detected!            Img Number: 11            Accuracy: %100.0
+Target Detected!            Img Number: 11            Accuracy: %100.0
+Target Detected!            Img Number: 11            Accuracy: %100.0
+Target Detected!            Img Number: 13            Accuracy: %100.0
+Target Detected!            Img Number: 13            Accuracy: %100.0
+Target Detected!            Img Number: 13            Accuracy: %100.0
+Target Detected!            Img Number: 16            Accuracy: %100.0
+Target Detected!            Img Number: 16            Accuracy: %100.0
+Target Detected!            Img Number: 16            Accuracy: %100.0
+Target Detected!            Img Number: 18            Accuracy: %100.0
+Target Detected!            Img Number: 18            Accuracy: %100.0
+Target Detected!            Img Number: 18            Accuracy: %100.0
+Target Detected!            Img Number: 19            Accuracy: %100.0
+Target Detected!            Img Number: 19            Accuracy: %100.0
+Target Detected!            Img Number: 19            Accuracy: %100.0
+Target Detected!            Img Number: 20            Accuracy: %100.0
+Target Detected!            Img Number: 20            Accuracy: %100.0
+Target Detected!            Img Number: 20            Accuracy: %100.0
+Target Detected!            Img Number: 22            Accuracy: %100.0
+Target Detected!            Img Number: 22            Accuracy: %100.0
+Target Detected!            Img Number: 22            Accuracy: %100.0
+Target Detected!            Img Number: 23            Accuracy: %100.0
+Target Detected!            Img Number: 23            Accuracy: %100.0
+Target Detected!            Img Number: 23            Accuracy: %100.0
+Target Detected!            Img Number: 24            Accuracy: %100.0
+Target Detected!            Img Number: 24            Accuracy: %100.0
+Target Detected!            Img Number: 24            Accuracy: %100.0
+Noise!                      Img Number: 48            Accuracy: %9.09
+Noise!                      Img Number: 48            Accuracy: %9.09
+Noise!                      Img Number: 48            Accuracy: %9.09
+Target Detected!            Img Number: 48            Accuracy: %100.0
+Target Detected!            Img Number: 48            Accuracy: %100.0
+Target Detected!            Img Number: 48            Accuracy: %100.0
+Noise!                      Img Number: 49            Accuracy: %4.55
+Noise!                      Img Number: 49            Accuracy: %4.55
+Noise!                      Img Number: 49            Accuracy: %4.55

@@ -9,11 +9,20 @@ import os
 
 globalTımer=time.time()
 
+#default
+wantedFrameNum=200
+accuracyLimit=50
 
-wantedFrameNum=input("Type the number of frame that you want examine: ")
-accuracyLimit=input("Type the number of accuracy limit that you want (max->100, min->0) : ")
+#wantedFrameNum=int(input("Type the number of frame that you want examine: "))
+#accuracyLimit=int(input("Type the number of accuracy limit that you want (max->100, min->0) : "))
 accuracyLimit=0 if accuracyLimit<0 else 100 if accuracyLimit>100 else accuracyLimit  
 
+
+
+#print(face_recognition.compare_faces([encodedTemp], tester))
+#cv2.imshow("tester-{}".format(getLastImgNumber()),cv2.imread("tester/{}".format(os.listdir('tester')[index])))
+#cv2.imshow("obj-{}".format(getLastImgNumber()),ımgTemp)
+#cv2.waitKey(0)
 def appendErrorLog(write):
     f=open('log\errorLog.txt','a')
     f.write(str(write)+"\n")
@@ -39,31 +48,25 @@ def encodeTesters():
         testerArr.append(tester_encoding)
     return testerArr
 
-def simpleTest(ımgTemp,testerArr): 
-    rgb_img = cv2.cvtColor(ımgTemp, cv2.COLOR_BGR2RGB)
+def simpleTest(ımgTemp,testerArr):     
     try:
-        encodedTemp = face_recognition.face_encodings(rgb_img)[0]
+        encodedTemp = face_recognition.face_encodings(cv2.cvtColor(ımgTemp, cv2.COLOR_BGR2RGB))[0]
     except:
         appendErrorLog("indexErr")
-        return 0
+        return "indexErr"
     accuracyCnt=0
-    
     for index,tester in enumerate(testerArr):
-        #print(face_recognition.compare_faces([encodedTemp], tester))
-        #cv2.imshow("tester-{}".format(getLastImgNumber()),cv2.imread("tester/{}".format(os.listdir('tester')[index])))
-        #cv2.imshow("obj-{}".format(getLastImgNumber()),ımgTemp)
-        #cv2.waitKey(0)
-        
         if face_recognition.compare_faces([encodedTemp], tester)==[True]:    
             accuracyCnt+=1
     
-    accuracyPercentage=round((accuracyCnt/len(os.listdir('tester')))*100,2)
-    if accuracyPercentage>50:
+    accuracyPercentage=round((accuracyCnt/len(os.listdir('tester')))*100,0)
+    if accuracyPercentage>accuracyLimit:
         appendErrorLog("Done, Accur: {}".format(accuracyPercentage))
-        return accuracyPercentage
     else:
         appendErrorLog("Error, Accur: {}".format(accuracyPercentage))
-        return 0
+    
+    return accuracyPercentage
+
 
 def offsetCrop(locations,offsetPx):
     newLocations=[]     
@@ -135,11 +138,11 @@ for videoName in os.listdir('inputVideos'):
                     [x1,y1,x2,y2]=offsetCrop([x1,y1,x2,y2],math.floor((x2-x1)/3))
                     croppedImage= frame[y1:y2,x1:x2]
 
-                    if simpleTest(croppedImage,encodedTesters)!=0:
-                        cv2.imwrite('output/target{}_%{}.jpg'.format(getLastImgNumber(),int(simpleTest(croppedImage,encodedTesters))),croppedImage)
+                    if type(simpleTest(croppedImage,encodedTesters))!=type("^_^") and simpleTest(croppedImage,encodedTesters)>accuracyLimit:
+                        cv2.imwrite('output/target{}_%{}.jpg'.format(getLastImgNumber(),str(simpleTest(croppedImage,encodedTesters))),croppedImage)
                         savedImg+=1
                     else:
-                        cv2.imwrite('noise/noise{}_%{}.jpg'.format(getLastImgNumber(),int(simpleTest(croppedImage,encodedTesters))),croppedImage)
+                        cv2.imwrite('noise/noise{}_%{}.jpg'.format(getLastImgNumber(),str(simpleTest(croppedImage,encodedTesters))),croppedImage)
                         noiseImg+=1
                     logWrite((int(getLastImgNumber())+1),'log.txt')   
                 

@@ -98,7 +98,7 @@ def clearFolderContent(folderName):
 def updateLogAndSaveImg(path,img,title="Untitled",accuracyPercentage="??"):
     logWrite((int(getLastImgNumber())+1),'fileNumberLog.txt')
     cv2.imwrite(path,img)
-    appendErrorLog("{}            Img Number: {0:4}          Accuracy: %{1:4}".format(title,getLastImgNumber(),accuracyPercentage))
+    appendErrorLog("{0}            Img Number: {1:4}          Accuracy: %{2:4}".format(title,getLastImgNumber(),accuracyPercentage))
 
 globalTımer=time.time()
 

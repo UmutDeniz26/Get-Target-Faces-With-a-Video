@@ -6,10 +6,10 @@ import cv2
 import os
 
 
-frameCursor,savedImg,noiseImg,videoCnt,examinedFramescnt,cantDetectCnt,DetectFaceFlag=0,0,0,0,0,0,True
+frameCursor,savedImg,noiseImg,videoCnt,examinedFramescnt,cantDetectCnt,DetectFaceFlag,otherFacesCnt=0,0,0,0,0,0,0,True
 
 #default
-wantedFrameNum=500
+wantedFrameNum=300
 accuracyLimit=97
 distributionChoice=0
 clearFolderContentChoice=1
@@ -120,7 +120,7 @@ logWrite("","faceDetectAccuracyLog.txt");logWrite("1","fileNumberLog.txt")
 
 #Clears selected folders
 if clearFolderContentChoice:
-    clearFolderContent('output');clearFolderContent('noise');clearFolderContent('cantDetect')
+    clearFolderContent('output');clearFolderContent('noise');clearFolderContent('cantDetect');clearFolderContent('otherFaces')
 
 weightedDistributionOfWantedLengths=[]
 for lengths in getVideoLengths():
@@ -184,24 +184,28 @@ for index,videoName in enumerate(os.listdir('inputVideos')):
             face_locations, face_names =sfr.detect_known_faces(frame) 
             for face_loc, face_names in zip(face_locations, face_names): 
 
+                logWrite((int(getLastImgNumber())+1),'fileNumberLog.txt')
+                #crop image due to face
+                y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
+                [x1,y1,x2,y2]=offsetCrop([x1,y1,x2,y2],math.floor((x2-x1)/cropOffsetDivider))
+                croppedImage= frame[y1:y2,x1:x2]
+                
                 #if there is this face in the TargetImagesToSearch file
                 if face_names!="Unknown":
                     DetectFaceFlag=True
-
-                    #crop image due to face
-                    y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
-                    [x1,y1,x2,y2]=offsetCrop([x1,y1,x2,y2],math.floor((x2-x1)/cropOffsetDivider))
-                    croppedImage= frame[y1:y2,x1:x2]
-
                     #simple test due to TargetImagesToTest folder
                     testResult=simpleTest(croppedImage,encodedTesters) # result is in type of %
-                    if type(simpleTest(croppedImage,encodedTesters))!=type("String") and testResult>accuracyLimit:
+                    if type(testResult)!=type("String") and testResult>accuracyLimit:
                         cv2.imwrite('output/target{}-%{}.jpg'.format(getLastImgNumber(),testResult),croppedImage)
                         savedImg+=1
                         break
                     else:
                         cv2.imwrite('noise/noise{}-%{}.jpg'.format(getLastImgNumber(),testResult),croppedImage)
                         noiseImg+=1   
+                else:
+                    cv2.imwrite('otherFaces/otherFaces{}.jpg'.format(getLastImgNumber()),croppedImage)
+                    otherFacesCnt+=1
+
 
             #neither targetface nor noiseface
             if DetectFaceFlag==False:
@@ -212,10 +216,8 @@ for index,videoName in enumerate(os.listdir('inputVideos')):
             #searching is over
             if videoCnt>= len(os.listdir('inputVideos')):
                 os.system("cls")
-                print("{}%100 Completed , Time passed: {}min {}sec  ,  # of Saved Images: {}  ,  # of Noise Images: {}  ,  # of Undetected face: {}  ,  # of examined frames: {}  ,  # of input video: {}"
-                    .format(cantDetectCnt,int(int(time.time()-globalTımer)/60),int(int(time.time()-globalTımer)%60),savedImg,noiseImg,
-                    int(examinedFramescnt)-savedImg-noiseImg,int(examinedFramescnt),videoCnt))
+                print("%100 Completed , Time passed: {}min {}sec  ,  # of Saved Images: {}  ,  # of Noise Images: {}  ,  # of Undetected face: {}  ,  # of other faces: {} ,  # of examined frames: {}  ,  # of input video: {}"
+                    .format(int(int(time.time()-globalTımer)/60),int(int(time.time()-globalTımer)%60),savedImg,noiseImg,
+                    int(examinedFramescnt)-savedImg-noiseImg,otherFacesCnt,int(examinedFramescnt),videoCnt))
             break
-        
         #To create folder names
-        logWrite((int(getLastImgNumber())+1),'fileNumberLog.txt')

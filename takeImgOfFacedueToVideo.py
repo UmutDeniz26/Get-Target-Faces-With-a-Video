@@ -51,7 +51,6 @@ def simpleTest(ımgTemp,testerArr):
     try:
         encodedTemp = face_recognition.face_encodings(cv2.cvtColor(ımgTemp, cv2.COLOR_BGR2RGB))[0]
     except:
-        appendErrorLog("indexErr")
         return "indexErr"
     accuracyCnt=0
     for index,tester in enumerate(testerArr):
@@ -59,11 +58,6 @@ def simpleTest(ımgTemp,testerArr):
             accuracyCnt+=1
     
     accuracyPercentage=round((accuracyCnt/len(os.listdir('TargetImagesToTest')))*100,2)
-    if accuracyPercentage>accuracyLimit:
-        appendErrorLog("Target Detected!            Img Number: {0:4}          Accuracy: %{1:4}".format(getLastImgNumber(),accuracyPercentage))
-    else:
-        appendErrorLog("Noise!                      Img Number: {0:4}          Accuracy: %{1:4}".format(getLastImgNumber(),accuracyPercentage))
-    
     return int(accuracyPercentage)
 
 def offsetCrop(locations,offsetPx):
@@ -101,6 +95,10 @@ def clearFolderContent(folderName):
     for f in os.listdir('{}'.format(folderName)):
         os.remove('{}/{}'.format(folderName,f))
 
+def updateLogAndSaveImg(path,img,title="Untitled",accuracyPercentage="??"):
+    logWrite((int(getLastImgNumber())+1),'fileNumberLog.txt')
+    cv2.imwrite(path,img)
+    appendErrorLog("{}            Img Number: {0:4}          Accuracy: %{1:4}".format(title,getLastImgNumber(),accuracyPercentage))
 
 globalTımer=time.time()
 
@@ -114,7 +112,6 @@ sfr = SimpleFacerec()
 sfr.load_encoding_images("TargetImagesToSearch/")
 print("Started to capture ..!")
 
-
 #initial logs
 logWrite("","faceDetectAccuracyLog.txt");logWrite("1","fileNumberLog.txt")
 
@@ -124,11 +121,10 @@ if clearFolderContentChoice:
 
 weightedDistributionOfWantedLengths=[]
 for lengths in getVideoLengths():
-
     #calculate Distribution weights
     weightedDistributionOfWantedLengths.append(int(lengths*wantedFrameNum/sum(getVideoLengths())))
 
-
+#same weights
 wantedFrameNum/=len(os.listdir('inputVideos')) if wantedFrameNum > len(os.listdir('inputVideos')) else wantedFrameNum
 
 
@@ -142,8 +138,8 @@ for index,videoName in enumerate(os.listdir('inputVideos')):
     
     #Setups to search faces in video
     videoCnt+=1
-    frameCursor=1
-    
+    frameCursor=0
+
     #load the video
     cap = cv2.VideoCapture('inputVideos/{}'.format(videoName))
     
@@ -155,10 +151,10 @@ for index,videoName in enumerate(os.listdir('inputVideos')):
     videoHeight = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)  
     videoDuration = cap.get(cv2.CAP_PROP_FRAME_COUNT)/cap.get(cv2.CAP_PROP_FPS)
 
-    frameScaler=math.ceil(cap.get(cv2.CAP_PROP_FRAME_COUNT)/(wantedFrameNum)) #-> it looks frames time: frame/constant
+    wantedFrameNum = cap.get(cv2.CAP_PROP_FRAME_COUNT)  if wantedFrameNum>cap.get(cv2.CAP_PROP_FRAME_COUNT) else wantedFrameNum
+    frameScaler=math.floor(cap.get(cv2.CAP_PROP_FRAME_COUNT)/(wantedFrameNum)) #-> it looks frames time: frame/constant
     examinedFramescnt+=(wantedFrameNum)
     localTimer=time.time()
-    
 
     #Starts searching
     while(True):
@@ -178,13 +174,11 @@ for index,videoName in enumerate(os.listdir('inputVideos')):
             print("{} - {}  ProgressPercentage: %{}   Video Length: {}h:{}m:{}s  frameScaler: {}    {} frames will be examined for this video".format(
                 videoCnt,videoName,round(progressPercentage,2),formatCustomDigit(int(videoDuration/(60*60)),2)
                 ,formatCustomDigit(int((videoDuration/(60))%60),2),formatCustomDigit(int(videoDuration%60),2),
-                round(cap.get(cv2.CAP_PROP_FRAME_COUNT)/wantedFrameNum,2),wantedFrameNum))
+                round(frameScaler),wantedFrameNum))
             
             #searchs faces in the image
             face_locations, face_names =sfr.detect_known_faces(frame) 
             for face_loc, face_names in zip(face_locations, face_names): 
-
-                logWrite((int(getLastImgNumber())+1),'fileNumberLog.txt')
                 #crop image due to face
                 y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
                 [x1,y1,x2,y2]=offsetCrop([x1,y1,x2,y2],math.floor((x2-x1)/cropOffsetDivider))
@@ -195,23 +189,40 @@ for index,videoName in enumerate(os.listdir('inputVideos')):
                     DetectFaceFlag=True
                     #simple test due to TargetImagesToTest folder
                     testResult=simpleTest(croppedImage,encodedTesters) # result is in type of %
+                    
+
                     if type(testResult)!=type("String") and testResult>accuracyLimit:
-                        cv2.imwrite('output/target{}-%{}.jpg'.format(getLastImgNumber(),testResult),croppedImage)
+                        updateLogAndSaveImg(
+                            path='output/target{}-%{}.jpg'.format(getLastImgNumber(),testResult),
+                            img=croppedImage,
+                            title="Face Detected Successfully!",
+                            accuracyPercentage=testResult)
                         savedImg+=1
                         break
                     else:
-                        cv2.imwrite('noise/noise{}-%{}.jpg'.format(getLastImgNumber(),testResult),croppedImage)
+                        updateLogAndSaveImg(
+                            path='noise/noise{}-%{}.jpg'.format(getLastImgNumber(),testResult),
+                            img=croppedImage,
+                            title="Noise has been detected!",
+                            accuracyPercentage=testResult)
                         noiseImg+=1   
                 else:
-                    cv2.imwrite('otherFaces/otherFaces{}.jpg'.format(getLastImgNumber()),croppedImage)
+                    updateLogAndSaveImg(
+                        path='otherFaces/otherFaces{}.jpg'.format(getLastImgNumber()),
+                        img=croppedImage,
+                        title="Unknown face detected")
                     otherFacesCnt+=1
 
 
             #neither targetface nor noiseface
             if DetectFaceFlag==False:
                 cantDetectCnt+=1
-                cv2.imwrite('cantDetect/cantDetect{}.jpg'.format(getLastImgNumber()),frame)
-
+                updateLogAndSaveImg(
+                    path='cantDetect/cantDetect{}.jpg'.format(getLastImgNumber()),
+                    img=frame,
+                    title="No face could be identified."
+                )
+                
         else: 
             #searching is over
             if videoCnt>= len(os.listdir('inputVideos')):

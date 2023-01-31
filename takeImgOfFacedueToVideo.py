@@ -12,16 +12,16 @@ frameCursor,targetImgCnt,noiseImgCnt,frameCnt,zeroFaceCnt,unknownFaceCnt,imgsWit
 infoTexts=[]
 
 #default
-wantedFrameNum=120
+wantedFrameNum=100
 accuracyLimit=97
 distributionChoice=0 
 clearFolderContentChoice=1
 cropOffsetDivider=3
 
-wantedFrameNum=int(input("Type the number of frame that you want examine: "))
-accuracyLimit=int(input("Type the number of accuracy limit that you want (max->100, min->0) : "))
-distributionChoice=int(input("Type the distribution choice (1 -> Same weights, else -> Weighted distribution due to video lengths) : "))
-clearFolderContentChoice=int(input("Type the clear content choice (1 -> Clear, else -> Hold) : "))
+#wantedFrameNum=int(input("Type the number of frame that you want examine: "))
+#accuracyLimit=int(input("Type the number of accuracy limit that you want (max->100, min->0) : "))
+#distributionChoice=int(input("Type the distribution choice (1 -> Same weights, else -> Weighted distribution due to video lengths) : "))
+#clearFolderContentChoice=int(input("Type the clear content choice (1 -> Clear, else -> Hold) : "))
 
 holdWantedFrameNum=wantedFrameNum
 #accuracy correction
